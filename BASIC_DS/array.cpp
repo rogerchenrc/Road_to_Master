@@ -1,41 +1,77 @@
 #include<iostream>
 #include<string>
+#include<stdexcept>
 using namespace std;
 using std::string;
 
 //Create an array 
 
-void arr(){
-    int f[5];
-    int f[] = {1, 3, 4, 5, 6};
-}
+class GameEntry{
+    public:
+        GameEntry(const string &n = "", int s = 0); // what's the difference between & and without &
+        string getName() const;
+        int getScore() const;
+    private:
+        string name;
+        int score;
+};
 
-enum MealType{NO_PREF, REGULAR, LOW_FAT, VEGETARIAN};
-
-struct Passenger{
-    string name;
-    MealType mealPref;
-    bool isFreqFlyer;
-    string freqFlyerNo;
+GameEntry::GameEntry(const string & n, int s):name(n), score(s){} //constructor
+string GameEntry::getName() const {return name;}
+int GameEntry::getScore() const {return score;}
+/*-------------------Scores--------------------------*/
+class Scores{
+    public:
+        Scores(int maxEnt = 10);
+        ~Scores();  //Desctructor
+        void add(const GameEntry& e);
+        GameEntry remove(int i);
+    private:
+        int maxEntries;
+        int numEntries;
+        GameEntry* entries;
 
 };
 
-int main(){
-    Passenger Tom = {"Tom Cruise", LOW_FAT, true, "291243"};
-    Tom.name = "Tom Hardy";
+Scores::Scores(int maxEnt){
+    maxEntries = maxEnt;
+    entries = new GameEntry[maxEntries];
+    numEntries = 0;
+}
 
-    Passenger *p;
-    p = new Passenger;
-    //C++ provides easier way to access member function ->
-    p -> name = "Pochontas";
-    p -> mealPref = NO_PREF;
-    p -> isFreqFlyer = true;
-    p -> freqFlyerNo = "22119";
+Scores::~Scores(){
+    delete [] entries;
+}
 
-    delete p; // Delete only exist when using "new" statmenet
+void Scores::add(const GameEntry & e){
+    int newScore = e.getScore();
+    //Check whether the entry is full
+    //MaxEntries will be set as 10
+    if(numEntries==maxEntries){
+        if(newScore <= entries[maxEntries-1].getScore()){
+            return; //not enough then ignore
+        }
+    }
+    else numEntries++;
+    int i = numEntries - 2; 
+    while (i>=0 && newScore>entries[i].getScore()){
+        entries[i+1] = entries[i];
+        i--;
+    }
+    entries[i+1]=e;
+    
+}
 
-    /*===========In case of buffer=============*/
-    char *buffer = new char[500];
-    buffer[3] = 'a';
-    delete [] buffer; // operator delete[] is used in the case of array
+GameEntry Scores::remove(int i){
+    if((i<0) || (i>=numEntries)){
+        throw out_of_range("Invalid index");
+        // throw IndexOutofBounds("Invalid index");
+    }
+    GameEntry e = entries[i];
+    for(int j = i+1; j < numEntries; j++){
+        entries[j-1] = entries[j];
+    }
+    numEntries--;
+    return e;
+
 }
